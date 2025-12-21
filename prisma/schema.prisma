@@ -1,5 +1,4 @@
- 
-generator client {
+ generator client {
   provider = "prisma-client"
   output   = "../app/generated/prisma"
 }
@@ -7,3 +6,57 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String
+  name        String
+  role        UserRole
+  phone       String?
+  designation String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("users")
+}
+
+model Appointment {
+  id           String            @id @default(cuid())
+  patientName  String
+  patientEmail String?
+  patientPhone String
+  date         String
+  timeSlot     String
+  serialNumber Int
+  status       AppointmentStatus @default(pending)
+  notes        String?
+  createdAt    DateTime          @default(now())
+
+  @@map("appointments")
+}
+
+model Notice {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  isActive  Boolean  @default(true)
+  isPinned  Boolean  @default(false)
+
+  @@map("notices")
+}
+
+enum UserRole {
+  super_admin
+  admin
+}
+
+enum AppointmentStatus {
+  pending
+  completed
+  cancelled
+}
+
+
+

@@ -5,7 +5,7 @@ export type UserRole = "super_admin" | "admin";
 export interface User {
   id: string;
   email: string;
-  password: string; // In production, this would be hashed
+  password: string;
   name: string;
   role: UserRole;
   phone?: string;
@@ -17,7 +17,7 @@ export interface User {
 export interface Appointment {
   id: string;
   patientName: string;
-  patientEmail: string;
+  patientEmail?: string;
   patientPhone: string;
   date: string;
   timeSlot: string;
@@ -31,15 +31,7 @@ export interface Notice {
   id: string;
   title: string;
   content: string;
-  createdBy: string;
   createdAt: string;
   isActive: boolean;
   isPinned: boolean;
-}
-
-export interface TimeSlot {
-  id: string;
-  time: string;
-  isAvailable: boolean;
-  maxPatients: number;
 }

@@ -1,0 +1,31 @@
+export const gadgetFilterAbleFields = [
+  "title",
+  "excerpt",
+  "content",
+  "brandBaseId",
+  "typeBaseId",
+  "isFeatured",
+  "isPinFeatured",
+  "isPinLatest",
+  "isPinHero",
+  "isPublished",
+  "isUpComing",
+  "isEmergingTech",
+  "isHotTech",
+];
+
+export const gadgetSearchableFields = [
+  "title",
+  "excerpt",
+  "content",
+  "brandBaseId",
+  "typeBaseId",
+  "isFeatured",
+  "isPinFeatured",
+  "isPinLatest",
+  "isPinHero",
+  "isPublished",
+  "isUpComing",
+  "isEmergingTech",
+  "isHotTech",
+];
