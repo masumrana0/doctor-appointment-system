@@ -1,603 +1,163 @@
-import Auth from "@/app/(backend)/_core/error-handler/auth";
+import { paginationFields } from "@/app/(backend)/_core/constants/patination.constant";
+import { requireAuth } from "@/app/(backend)/_core/error-handler/auth";
+import { paginationHelpers } from "@/app/(backend)/_core/helper/pagination-helper";
+import { IServiceResponse } from "@/app/(backend)/_core/interface/response";
+import pick from "@/app/(backend)/_core/shared/pick";
+import {
+  Appointment,
+  AppointmentStatus,
+  Prisma,
+} from "@/app/generated/prisma/client";
+import { prisma } from "@/lib/prisma";
 
 // create Appointment
-const createAppointment  = async (req: Request) => {
-  const session = await Auth([Role.ADMIN, Role.SUPER_ADMIN, Role.AUTHOR]);
-  const formData = await req.formData();
+const createAppointment = async (req: Request) => {
+  const body = await req.json();
 
-  const file = formData.get("imgFile") as File | null;
-  const payloadStr = formData.get("payload") as string | null;
+  const { serialNumber, ...appointmentData } = body;
 
-  if (!file || !payloadStr) {
-    throw ApiErrors.BadRequest("File and payload are required.");
-  }
-
-  const image = savedFile[0].fileUrl;
-  const { title, excerpt, content, ...rest } = payload;
-
-  // Base (English) Appoinment
-  const baseAppoinment = {
-    ...payload,
-    image,
-    authorId: session!.user.id,
-    lang: "en",
-  };
-
-  // Translate content to Bangla
-  const translated = await translateContent({ title, excerpt, content });
-  console.log(translated);
-
-  // Bangla Appoinment
-  const banglaAppoinment = {
-    ...rest,
-    ...translated,
-    image,
-    authorId: session!.user.id,
-    lang: "bn",
-  };
-  console.log(banglaAppoinment);
-
-  // Save both Appoinments in a transaction
-  const result = await prisma.$transaction(
-    async (tx) => {
-      const baseData = await tx.Appoinment.create({ data: baseAppoinment });
-      const banglaData = await tx.Appoinment.create({
-        data: {
-          ...banglaAppoinment,
-          baseId: baseData.baseId,
-        },
-      });
-
-      return { en: baseData, bn: banglaData };
-    },
-    {
-      timeout: 10000, // 10 seconds
-    }
-  );
-
-  return result;
-};
-
-// update Appoinment
-const updateAppoinment = async (req: Request) => {
-  const session = await Auth([Role.ADMIN, Role.SUPER_ADMIN, Role.AUTHOR]);
-
-  const { searchParams } = new URL(req.url);
-  const AppoinmentId = searchParams.get("id");
-  if (!AppoinmentId) throw ApiErrors.BadRequest("Appoinment ID is missing");
-
-  // Check if Appoinment exists
-  const isExistAppoinment = await prisma.Appoinment.findFirst({
-    where: { id: AppoinmentId },
-  });
-
-  if (!isExistAppoinment) throw ApiErrors.NotFound("Appoinment not found");
-
-  // Only allow SUPER_ADMIN or the author to update the Appoinment
-  if (
-    session.user.role !== Role.SUPER_ADMIN &&
-    isExistAppoinment.authorId !== session.user.id
-  ) {
-    throw ApiErrors.BadRequest("You're not authorized to update this Appoinment");
-  }
-
-  // Get form data
-  const formData = await req.formData();
-
-  const file = formData.get("imgFile") as File | null;
-  const payloadStr = formData.get("payload") as string | null;
-  const updatedBase: Record<string, any> = {};
-  const updatedBangla: Record<string, any> = {};
-
-  if (!file && !payloadStr) {
-    throw ApiErrors.BadRequest("Required data is missing");
-  }
-
-  if (file) {
-    const savedFile = await uploader.uploadImages([file]),
-      image = savedFile[0].fileUrl as string;
-    updatedBangla.image = savedFile[0].fileUrl as string;
-    updatedBase.image = savedFile[0].fileUrl as string;
-  }
-
-  if (payloadStr) {
-    const basePayload = JSON.parse(payloadStr);
-    Object.assign(updatedBase, basePayload);
-  }
-
-  const { title, excerpt, content, ...others } = updatedBase;
-  let translatedContent: any = {};
-  if (!title || !excerpt || !content) {
-    translatedContent = await translateContent({
-      title: title,
-      excerpt: excerpt,
-      content: content,
-    });
-  }
-
-  Object.assign(updatedBangla, others);
-
-  if (Object.keys(translatedContent).length > 0) {
-    const allData = { ...translatedContent };
-    Object.assign(updatedBangla, allData);
-  }
-
-  const result = await prisma.$transaction(async (tx) => {
-    // Update base (English) Appoinment
-    const updatedBaseAppoinment = await tx.Appoinment.update({
-      where: {
-        baseId_lang_unique: {
-          baseId: isExistAppoinment.baseId,
-          lang: "en",
-        },
-      },
-      data: {
-        ...updatedBase,
-      },
-    });
-
-    // Update Bangla version
-    const updatedBanglaAppoinment = await tx.Appoinment.update({
-      where: {
-        baseId_lang_unique: {
-          baseId: isExistAppoinment.baseId,
-          lang: "bn",
-        },
-      },
-      data: {
-        ...updatedBangla,
-      },
-    });
-
-    return { base: updatedBaseAppoinment, bn: updatedBanglaAppoinment };
-  });
-
-  if (file) {
-    await uploader.deleteImage(isExistAppoinment.image as string);
-  }
-
-  return result;
-};
-
-// delete Appoinment
-const deleteAppoinment = async (req: Request) => {
-  const session = await Auth([Role.ADMIN, Role.SUPER_ADMIN, Role.AUTHOR]);
-  const { searchParams } = new URL(req.url);
-  const AppoinmentId = searchParams.get("id");
-
-  if (!AppoinmentId) throw ApiErrors.BadRequest("Appoinment ID is missing");
-
-  // Check if Appoinment exists
-  const isExistAppoinment = await prisma.Appoinment.findFirst({
-    where: { id: AppoinmentId },
-  });
-
-  if (!isExistAppoinment) throw ApiErrors.NotFound("Appoinment not found");
-
-  // Only allow SUPER_ADMIN or the author to delete the Appoinment
-  if (
-    session.user.role !== Role.SUPER_ADMIN &&
-    isExistAppoinment.authorId !== session.user.id
-  ) {
-    throw ApiErrors.BadRequest("You're not authorized to  delete this Appoinment");
-  }
-
-  await prisma.Appoinment.deleteMany({
-    where: { baseId: isExistAppoinment.baseId },
-  });
-
-  await uploader.deleteImage(isExistAppoinment.image);
-};
-
-// getAllAppoinment for admin
-const getAllAppoinment = async (req: Request) => {
-  // Auth guard (optional)
-  await Auth([Role.ADMIN, Role.SUPER_ADMIN]);
-
-  const { searchParams } = new URL(req.url);
-
-  const searchParamsObj = Object.fromEntries(searchParams.entries());
-
-  const filters = pick(searchParamsObj, AppoinmentFilterAbleFields);
-
-  const paginationOptions = pick(searchParamsObj, paginationFields);
-
-  const { limit, page, skip, sortBy, sortOrder } =
-    paginationHelpers.calculatePagination(paginationOptions);
-
-  const searchTerm = searchParamsObj.searchTerm || "";
-  const lang = (searchParamsObj.lang || "en") as Language;
-
-  const where: any = {
-    lang: lang,
-  };
-
-  // Search logic
-  if (searchTerm) {
-    where.OR = AppoinmentSearchableFields.map((field) => ({
-      [field]: {
-        contains: searchTerm,
-        mode: "insensitive",
-      },
-    }));
-  }
-
-  // Apply filters
-  for (const [key, value] of Object.entries(filters)) {
-    if (value && key !== "searchTerm") {
-      if (value === "true" || value === "false") {
-        where[key] = value === "true";
-      } else {
-        where[key] = value;
-      }
-    }
-  }
-
-  const orderBy: any = {};
-  if (sortBy && sortOrder) {
-    orderBy[sortBy] = sortOrder.toLowerCase();
-  } else {
-    orderBy.createdAt = "desc";
-  }
-
-  // Fetch Appoinments with populated Category
-  const Appoinments = await prisma.Appoinment.findMany({
-    where,
-    skip,
-    take: limit,
-    orderBy,
-    include: {
-      category: true,
-    },
-  });
-
-  const result = Appoinments.map(async (Appoinment) => {
-    const { category, ...rest } = Appoinment;
-    const Category = await prisma.category.findFirst({
-      where: { baseId: category!.baseId, lang: lang },
-    });
-
-    return {
-      ...rest,
-      category: Category,
-    };
-  });
-  const formattedResultPromise = await Promise.all(result);
-
-  // Count for pagination
-  const total = await prisma.Appoinment.count({ where });
-  const totalPage = Math.ceil(total / limit);
-
-  return {
-    result: formattedResultPromise,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPage,
-    },
-  };
-};
-
-// get all Appoinment  for all
-const getAllFeaturedAppoinment = async (req: Request) => {
-  const { searchParams } = new URL(req.url);
-  const searchParamsObj = Object.fromEntries(searchParams.entries());
-
-  const filters = pick(searchParamsObj, AppoinmentFilterAbleFields);
-
-  const paginationOptions = pick(searchParamsObj, paginationFields);
-
-  const { limit, page, skip, sortBy, sortOrder } =
-    paginationHelpers.calculatePagination(paginationOptions);
-
-  const searchTerm = searchParamsObj.searchTerm || "";
-  const sort = searchParamsObj.sort || "newest";
-  const lang = (searchParamsObj.lang || "en") as Language;
-
-  const where: any = {
-    lang: lang,
-    isFeatured: true,
-  };
-
-  // Search logic
-  if (searchTerm) {
-    where.OR = AppoinmentSearchableFields.map((field) => ({
-      [field]: {
-        contains: searchTerm,
-        mode: "insensitive",
-      },
-    }));
-  }
-
-  // Apply filters
-  for (const [key, value] of Object.entries(filters)) {
-    if (value && key !== "searchTerm") {
-      if (value === "true" || value === "false") {
-        where[key] = value === "true";
-      } else {
-        where[key] = value;
-      }
-    }
-  }
-
-  const orderBy: any = {};
-  if (sort == "newest") {
-    orderBy.createdAt = "desc";
-  } else if (sort == "oldest") {
-    orderBy.createdAt = "asc";
-  }
-
-  // Fetch Appoinments with populated Category
-  const Appoinments = await prisma.Appoinment.findMany({
-    where,
-    skip,
-    take: limit,
-    orderBy,
-    include: {
-      category: true,
-    },
-  });
-
-  const result = Appoinments.map(async (Appoinment) => {
-    const { category, ...rest } = Appoinment;
-    const Category = await prisma.category.findFirst({
-      where: { baseId: category!.baseId, lang: lang },
-    });
-
-    return {
-      ...rest,
-      category: Category,
-    };
-  });
-  const formattedResultPromise = await Promise.all(result);
-
-  // Count for pagination
-  const total = await prisma.Appoinment.count({ where });
-  const totalPage = Math.ceil(total / limit);
-
-  return {
-    result: formattedResultPromise,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPage,
-    },
-  };
-};
-
-// get all Appoinment  for all
-const getAllLatestAppoinment = async (req: Request) => {
-  const { searchParams } = new URL(req.url);
-  const searchParamsObj = Object.fromEntries(searchParams.entries());
-
-  const filters = pick(searchParamsObj, AppoinmentFilterAbleFields);
-
-  const paginationOptions = pick(searchParamsObj, paginationFields);
-
-  const { limit, page, skip, sortBy, sortOrder } =
-    paginationHelpers.calculatePagination(paginationOptions);
-
-  const searchTerm = searchParamsObj.searchTerm || "";
-  const sort = searchParamsObj.sort || "newest";
-  const lang = (searchParamsObj.lang || "en") as Language;
-
-  const where: any = {
-    lang: lang,
-    isLatest: true,
-  };
-
-  // Search logic
-  if (searchTerm) {
-    where.OR = AppoinmentSearchableFields.map((field) => ({
-      [field]: {
-        contains: searchTerm,
-        mode: "insensitive",
-      },
-    }));
-  }
-
-  // Apply filters
-  for (const [key, value] of Object.entries(filters)) {
-    if (value && key !== "searchTerm") {
-      if (value === "true" || value === "false") {
-        where[key] = value === "true";
-      } else {
-        where[key] = value;
-      }
-    }
-  }
-
-  const orderBy: any = {};
-  if (sort == "newest") {
-    orderBy.createdAt = "desc";
-  } else if (sort == "oldest") {
-    orderBy.createdAt = "asc";
-  }
-
-  // Fetch Appoinments with populated Category
-  const Appoinments = await prisma.Appoinment.findMany({
-    where,
-    skip,
-    take: limit,
-    orderBy,
-    include: {
-      category: true,
-    },
-  });
-
-  const result = Appoinments.map(async (Appoinment) => {
-    const { category, ...rest } = Appoinment;
-    const Category = await prisma.category.findFirst({
-      where: { baseId: category!.baseId, lang: lang },
-    });
-
-    return {
-      ...rest,
-      category: Category,
-    };
-  });
-  const formattedResultPromise = await Promise.all(result);
-
-  // Count for pagination
-  const total = await prisma.Appoinment.count({ where });
-  const totalPage = Math.ceil(total / limit);
-
-  return {
-    result: formattedResultPromise,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPage,
-    },
-  };
-};
-
-const getOneAppoinment = async (req: Request) => {
-  const { searchParams } = new URL(req.url);
-  const AppoinmentId = searchParams.get("baseId");
-  const lang = (searchParams.get("lang") || "en") as Language;
-
-  if (!AppoinmentId) throw ApiErrors.BadRequest("Appoinment baseID is missing");
-
-  // Check if Appoinment exists
-  const isExistAppoinment = await prisma.Appoinment.findUnique({
+  const lastAppointment = await prisma.appointment.findFirst({
     where: {
-      baseId_lang_unique: { baseId: AppoinmentId, lang },
+      date: new Date(appointmentData.date),
     },
-
-    include: {
-      category: true,
-      author: true,
-    },
+    orderBy: { serialNumber: "desc" },
   });
 
-  if (!isExistAppoinment) throw ApiErrors.NotFound("Appoinment not found");
-  const Category = await prisma.category.findFirst({
-    where: { baseId: isExistAppoinment!.category!.baseId, lang: lang },
+  if (!lastAppointment) {
+    appointmentData.timeSlot = "03:00 PM";
+  } else if (lastAppointment && lastAppointment.timeSlot) {
+    const lastTime = lastAppointment.timeSlot;
+    let [time, period] = lastTime.split(" ");
+    let [hoursStr, minutesStr] = time.split(":").map(Number).slice(0, 2);
+    let hours = Number(hoursStr);
+    let minutes = Number(minutesStr);
+
+    // Increment time by 6 minutes
+    minutes += 6;
+    if (minutes >= 60) {
+      minutes = minutes % 60;
+      hours += 1;
+    }
+    if (hours > 12) {
+      hours = hours % 12;
+      period = period === "AM" ? "PM" : "AM";
+    }
+    appointmentData.timeSlot = `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")} ${period}`;
+  }
+
+  appointmentData.serialNumber = lastAppointment
+    ? lastAppointment.serialNumber + 1
+    : 1;
+
+  const result = await prisma.appointment.create({
+    data: appointmentData,
   });
 
-  isExistAppoinment.category = Category;
-
-  return isExistAppoinment;
+  return result;
 };
 
-// get Pin Featured Appoinment
-const getForHomePage = async (req: Request) => {
-  const { searchParams } = new URL(req.url);
-  const searchParamsObj = Object.fromEntries(searchParams.entries());
+// getAllAppointment for admin
+const getAllAppointment = async (
+  req: Request
+): Promise<IServiceResponse<Appointment[]>> => {
+  await requireAuth();
+  const url = new URL(req.url);
+  const searchParams = url.searchParams;
 
-  const lang = (searchParamsObj.lang || "en") as Language;
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split("T")[0];
 
-  const isPinHero = await fetchAppoinment(
-    {
-      isPublished: true,
-      isPinHero: true,
-    },
-    lang,
-    3
+  // Extract filters from query parameters
+  const requestedDate = searchParams.get("date");
+
+  const dateFilter =
+    requestedDate && requestedDate !== "all" ? requestedDate : today;
+
+  const patientPhone = searchParams.get("patientPhone") || undefined;
+
+  const requestedStatus = searchParams.get("status");
+
+  const status =
+    requestedStatus === "all"
+      ? null
+      : (requestedStatus as AppointmentStatus | null);
+
+  // Build filter conditions
+  const filterConditions: Prisma.AppointmentWhereInput = {};
+  if (status) {
+    filterConditions.status = status;
+  }
+
+  if (dateFilter) {
+    const startOfDay = new Date(`${dateFilter}T00:00:00.000Z`);
+    const endOfDay = new Date(`${dateFilter}T23:59:59.999Z`);
+
+    filterConditions.date = {
+      gte: startOfDay,
+      lte: endOfDay,
+    };
+  }
+  if (patientPhone) {
+    filterConditions.patientPhone = {
+      contains: patientPhone,
+      mode: "insensitive",
+    };
+  }
+
+  // Get pagination parameters
+  const paginationOptions = pick(
+    Object.fromEntries(searchParams),
+    paginationFields
   );
 
-  const getFeatured = await fetchAppoinment(
-    {
-      isPublished: true,
-      isPinFeatured: true,
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelpers.calculatePagination(paginationOptions);
 
-      OR: [
-        {
-          isFeatured: true,
-        },
-      ],
-    },
-    lang,
-    4
-  );
+  type AppointmentSortableField = "createdAt" | "date" | "serialNumber";
 
-  const getLatest = await fetchAppoinment(
-    {
-      isPublished: true,
-      isPinLatest: true,
-      OR: [
-        {
-          isLatest: true,
-        },
-      ],
+  // Fetch appointments with filters
+  const appointments = await prisma.appointment.findMany({
+    where: filterConditions,
+    skip,
+    take: limit,
+    orderBy: {
+      serialNumber: "asc",
     },
-    lang,
-    5
-  );
+  });
+
+  // Get total count for pagination
+  const total = await prisma.appointment.count({
+    where: filterConditions,
+  });
 
   return {
-    isPinHero: isPinHero,
-    isPinFeatured: getFeatured,
-    isPinLatest: getLatest,
+    meta: {
+      page: page,
+      limit: limit,
+      total: total,
+    },
+    data: appointments,
   };
 };
 
-// getForNavbar
-const getForNavbar = async (req: Request) => {
-  const { searchParams } = new URL(req.url);
-  const lang = (searchParams.get("lang") || "en") as Language;
+// update appointment status to completed
+const updateStatusCompleted = async (req: Request) => {
+  await requireAuth();
+  const body = await req.json();
+  const { id } = body;
 
-  const [upcomingRaw, latestRaw, emerging, ai] = await Promise.all([
-    fetchAppoinment({ isGadget: true, isUpComing: true, isPinNav: true }, lang, 3),
-    fetchAppoinment({ isGadget: true, isLatest: true, isPinNav: true }, lang, 3),
-    fetchAppoinment(
-      { isHotTech: true, isEmergingTech: true, isPinNav: true },
-      lang,
-      6
-    ),
-    fetchAppoinment(
-      {
-        isHotTech: true,
-        isPinNav: true,
+  const appointment = await prisma.appointment.update({
+    where: { id },
+    data: { status: "completed" },
+  });
 
-        OR: [
-          {
-            category: {
-              is: {
-                name: { equals: "Ai", mode: "insensitive" },
-              },
-            },
-          },
-          {
-            category: {
-              is: {
-                name: { equals: "Machine Learning", mode: "insensitive" },
-              },
-            },
-          },
-        ],
-      },
-      lang,
-      6
-    ),
-  ]);
-
-  const data = {
-    navGadget: {
-      latest: latestRaw,
-      upcoming: upcomingRaw,
-    },
-    navHotTech: {
-      emerging,
-      ai,
-    },
-  };
-
-  return data;
+  return appointment;
 };
 
-export const AppoinmentService = {
-  createAppoinment,
-  deleteAppoinment,
-  updateAppoinment,
-  getAllAppoinment,
-  getAllFeaturedAppoinment,
-  getAllLatestAppoinment,
-  getForHomePage,
-  getForNavbar,
-  getOneAppoinment,
+export const AppointmentService = {
+  createAppointment,
+  getAllAppointment,
+  updateStatusCompleted,
 };

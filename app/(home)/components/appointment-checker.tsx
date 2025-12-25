@@ -1,8 +1,6 @@
 "use client";
-
 import type React from "react";
-
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -28,62 +26,74 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { Appointment } from "@/interface";
- 
 
 export function AppointmentChecker() {
   const [email, setEmail] = useState("");
   const [appointmentId, setAppointmentId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [error, setError] = useState("");
   const [searched, setSearched] = useState(false);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSearched(false);
+  const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
 
-    if (!email && !appointmentId) {
-      setError("Please enter either email or appointment ID");
-      return;
-    }
+  const normalizedId = useMemo(
+    () => appointmentId.trim().toLowerCase(),
+    [appointmentId]
+  );
 
-    setIsLoading(true);
+  const handleSearch = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setError("");
+      setSearched(false);
+      setAppointments([]);
 
-    try {
-      const response = await fetch("/api/appointments");
-      const data = await response.json();
-
-      let filteredAppointments = data.appointments || [];
-
-      if (appointmentId) {
-        filteredAppointments = filteredAppointments.filter((apt: Appointment) =>
-          apt.id.toLowerCase().includes(appointmentId.toLowerCase())
-        );
-      } else if (email) {
-        filteredAppointments = filteredAppointments.filter(
-          (apt: Appointment) =>
-            apt.patientEmail.toLowerCase() === email.toLowerCase()
-        );
+      if (!normalizedEmail && !normalizedId) {
+        setError("Please enter either email or appointment ID");
+        return;
       }
 
-      // Sort by date descending
-      filteredAppointments.sort((a: Appointment, b: Appointment) => {
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      });
+      setIsLoading(true);
 
-      setAppointments(filteredAppointments);
-      setSearched(true);
+      try {
+        const response = await fetch("/api/appointments");
+        if (!response.ok) throw new Error("Request failed");
 
-      if (filteredAppointments.length === 0) {
-        setError("No appointments found with the provided information");
+        const data = await response.json();
+        const fetchedAppointments: Appointment[] = data.appointments ?? [];
+
+        const filteredAppointments = fetchedAppointments
+          .filter((apt) => {
+            if (normalizedId) {
+              return apt.id?.toLowerCase().includes(normalizedId);
+            }
+            if (normalizedEmail) {
+              return (
+                apt.patientEmail?.toLowerCase() === normalizedEmail ||
+                apt.patientEmail?.toLowerCase().includes(normalizedEmail)
+              );
+            }
+            return false;
+          })
+          .sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+
+        setAppointments(filteredAppointments);
+        setSearched(true);
+
+        if (filteredAppointments.length === 0) {
+          setError("No appointments found with the provided information");
+        }
+      } catch (err) {
+        setError("Failed to search appointments. Please try again.");
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      setError("Failed to search appointments. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    [normalizedEmail, normalizedId]
+  );
 
   const downloadAppointmentPDF = (appointment: Appointment) => {
     const content = `
@@ -99,7 +109,7 @@ APPOINTMENT DETAILS
 
 Appointment ID:     ${appointment.id}
 Serial Number:      #${appointment.serialNumber}
-Status:             ${appointment.status.toUpperCase()}
+Status:             ${appointment?.status?.toUpperCase()}
 
 Date:               ${format(new Date(appointment.date), "PPPP")}
 Time Slot:          ${appointment.timeSlot}
@@ -138,7 +148,7 @@ Website:            www.drjohnson.com
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Booked on: ${format(new Date(appointment.createdAt), "PPpp")}
+Booked on: ${format(new Date(appointment?.createdAt as any), "PPpp")}
 
 Thank you for choosing Dr. Sarah Johnson Medical Practice!
 
@@ -261,7 +271,7 @@ Thank you for choosing Dr. Sarah Johnson Medical Practice!
                   </Badge>
                 </div>
                 <CardDescription>
-                  Booked on {format(new Date(appointment.createdAt), "PPp")}
+                  Booked on {format(new Date(appointment?.createdAt as any), "PPp")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">

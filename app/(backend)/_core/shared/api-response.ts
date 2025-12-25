@@ -21,6 +21,7 @@ type IApiResponse<T> = {
 };
 
 const sendResponse = <T>(data: IApiResponse<T>) => {
+  
   const responseData: IApiResponse<T> = {
     statusCode: data.statusCode,
     success: true,

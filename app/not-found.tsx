@@ -1,3 +1,4 @@
+"use client";
 import NotFoundPage from "@/components/shared/not-found";
 
 const NotFound = () => {

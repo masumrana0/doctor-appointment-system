@@ -3,28 +3,29 @@
 export type UserRole = "super_admin" | "admin";
 
 export interface User {
-  id: string;
+  id?: string;
   email: string;
   password: string;
   name: string;
   role: UserRole;
   phone?: string;
   designation?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Appointment {
-  id: string;
+  id?: string;
   patientName: string;
   patientEmail?: string;
   patientPhone: string;
-  date: string;
-  timeSlot: string;
-  serialNumber: number;
-  status: "pending" | "completed" | "cancelled";
+  date: Date | string;
+  timeSlot?: string;
+  serialNumber?: number;
+  status?: "pending" | "completed" | "cancelled";
   notes?: string;
-  createdAt: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Notice {
@@ -35,3 +36,11 @@ export interface Notice {
   isActive: boolean;
   isPinned: boolean;
 }
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export type IUpdateQueryType<T> = { data: Partial<T>; id: string };
+export type ID = string;

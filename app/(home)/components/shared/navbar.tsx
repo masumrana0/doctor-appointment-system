@@ -3,13 +3,12 @@ import { Button } from "@/components/ui/button";
 import { translations } from "@/lib/translation";
 import { Calendar, Shield } from "lucide-react";
 import Link from "next/link";
-import { LanguageSwitch, selectT } from "./lenguageSwitch";
+import { LanguageSwitch, useTranslation } from "./languageSwitch";
 
 const Navbar = () => {
-  const t = (key: keyof typeof translations.en) => selectT(key);
-
+  const t = useTranslation();
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-300">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 transition-all duration-300">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
@@ -26,7 +25,7 @@ const Navbar = () => {
         </div>
         <nav className="flex items-center gap-2 sm:gap-4">
           <LanguageSwitch />
-          <Link href="#booking">
+          <Link href="/appointment-book">
             <Button size="lg" className="hidden sm:flex">
               <Calendar className="mr-2 h-4 w-4" />
               {t("bookAppointment")}
@@ -38,11 +37,6 @@ const Navbar = () => {
           <Link href="/login">
             <Button variant="ghost" size="sm" className="hidden sm:flex">
               {t("staffLogin")}
-            </Button>
-          </Link>
-          <Link href="/appointment-check">
-            <Button variant="outline" size="sm">
-              {t("checkAppointment")}
             </Button>
           </Link>
         </nav>

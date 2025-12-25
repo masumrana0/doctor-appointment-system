@@ -30,7 +30,7 @@ export function DashboardSidebar({
   isDesktop = false,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
- 
+
   const isSuperAdmin = user?.role === "super_admin";
 
   const navigation = [
@@ -54,11 +54,6 @@ export function DashboardSidebar({
         ]
       : []),
     { name: "Appointments", href: "/dashboard/appointments", icon: Calendar },
-    {
-      name: "check Appointments",
-      href: "/dashboard/check-appointments",
-      icon: ClipboardCheck,
-    },
 
     { name: "Patients", href: "/dashboard/patients", icon: Users },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
@@ -128,18 +123,18 @@ export function DashboardSidebar({
         {/* User Info */}
         <div className="absolute bottom-4 left-4 right-4">
           <div className="bg-muted rounded-lg p-3">
-            <p className="text-sm font-medium">{user.name}</p>
-            <p className="text-xs text-muted-foreground">{user.designation}</p>
+            <p className="text-sm font-medium">{user?.name}</p>
+            <p className="text-xs text-muted-foreground">{user?.designation}</p>
             <div className="mt-2">
               <span
                 className={cn(
                   "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
-                  user.role === "super_admin"
+                  user?.role === "super_admin"
                     ? "bg-primary/10 text-primary"
                     : "bg-secondary/10 text-secondary-foreground"
                 )}
               >
-                {user.role.replace("_", " ")}
+                {user?.role.replace("_", " ")}
               </span>
             </div>
           </div>

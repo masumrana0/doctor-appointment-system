@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { DashboardSidebar } from "./dashboard-sidebar";
 import { DashboardHeader } from "./dashboard-header";
 import { User } from "@/interface";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
  
+import { AUTH_TOKEN } from "@/constants/keys";
+
 interface DashboardClientLayoutProps {
   children: React.ReactNode;
   user: User;
@@ -16,6 +20,14 @@ export function DashboardClientLayout({
 }: DashboardClientLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const router = useRouter();
+
+  if (!user) {
+    console.log();
+    Cookies.remove(AUTH_TOKEN);
+    router.push("/login");
+    return null;
+  }
 
   useEffect(() => {
     const checkScreenSize = () => {

@@ -1,4 +1,4 @@
-export type ISendApiResponse<T = any> = {
+export type ISendApiResponse<T> = {
   success: boolean;
   status: number;
   message?: string;
@@ -6,10 +6,15 @@ export type ISendApiResponse<T = any> = {
   meta?: IMeta;
 };
 
+export type IServiceResponse<T> = {
+  data: T;
+  meta: IMeta;
+};
+
 export type IMeta = {
   page: number;
   limit: number;
-  total?: number;
+  total: number;
 };
 
 export type IErrorMessage = {
@@ -18,7 +23,7 @@ export type IErrorMessage = {
 };
 
 export type IErrorResponse = {
-  succces: boolean;
+  success: boolean;
   message: string;
   errorMessages: IErrorMessage[];
   stack?: any;

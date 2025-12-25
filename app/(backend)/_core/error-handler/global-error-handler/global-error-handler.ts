@@ -43,8 +43,7 @@ export async function GlobalErrorHandler(error: any) {
     stack = error.stack;
   }
 
-  // Return error response
-  return NextResponse.json(
+  const res = NextResponse.json(
     {
       success: false,
       message,
@@ -55,4 +54,7 @@ export async function GlobalErrorHandler(error: any) {
       status: statusCode,
     }
   );
+
+  // Return error response
+  return res;
 }

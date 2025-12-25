@@ -1,8 +1,8 @@
- 
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft } from "lucide-react"
-import { AppointmentChecker } from "../components/appointment-checker"
+"use client";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { AppointmentChecker } from "../components/appointment-checker";
 
 export default function AppointmentCheckPage() {
   return (
@@ -21,7 +21,5 @@ export default function AppointmentCheckPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
-

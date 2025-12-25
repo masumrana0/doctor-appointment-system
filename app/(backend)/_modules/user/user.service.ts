@@ -1,25 +1,11 @@
-import { uploader } from "@/lib/uploader/uploader";
-import prisma from "@/lib/prisma";
-import { Role } from "@prisma/client";
-import Auth from "../../_core/error-handler/auth";
 import { ApiErrors } from "../../_core/errors/api-error";
 import { passwordHelper } from "../../_core/helper/password-security";
-/**
- * Title: ''
- * Description: ''
- * Author: 'Masum Rana'
- * Date: 31-05-2025
- *
- */
+import { prisma } from "@/lib/prisma";
+import { requireAuth, RequireSuperAdmin } from "../../_core/error-handler/auth";
 
 const createUser = async (req: Request) => {
-  const session = await Auth([Role.ADMIN, Role.SUPER_ADMIN]);
-
+  await RequireSuperAdmin();
   const { password, ...payload } = await req.json();
-
-  if (payload.role === Role.SUPER_ADMIN && session.user.role === "ADMIN") {
-    throw ApiErrors.Forbidden("you are not allow to create super_admin");
-  }
 
   // Check if user already exists
   const existingUser = await prisma.user.findUnique({
@@ -48,16 +34,32 @@ const createUser = async (req: Request) => {
   return userWithoutPassword;
 };
 
+const getLoggedInUser = async () => {
+  const session = await requireAuth();
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.id },
+  });
+  if (!user) {
+    throw ApiErrors.NotFound("User not found");
+  }
+  const { password, ...safeUser } = user;
+  return safeUser;
+};
+
 const getAllUser = async () => {
-  await Auth([Role.ADMIN, Role.SUPER_ADMIN]);
+  await RequireSuperAdmin();
   const result = await prisma.user.findMany({});
   return result;
 };
 
-const updateUser = async (req: Request) => {
-  const session = await Auth([Role.ADMIN, Role.SUPER_ADMIN]);
+const updateLoggedInUser = async (req: Request) => {
+  const session = await requireAuth();
+  console.log("user identified");
+  const body = await req.json();
+  console.log("Request body:", body);
 
-  const id = session.user.id;
+  const id = session.id;
 
   const isExistUser = await prisma.user.findUnique({
     where: { id },
@@ -67,25 +69,14 @@ const updateUser = async (req: Request) => {
     throw ApiErrors.NotFound("User not found");
   }
 
-  const formData = await req.formData();
-  const file = formData.get("imgFile") as File;
-  const payloadStr = formData.get("payload") as string;
-
-  const payload: any = {};
-  if (payloadStr) {
-    Object.assign(payload, JSON.parse(payloadStr));
+  // Validate that body has at least one field to update
+  if (!body || Object.keys(body).length === 0) {
+    throw ApiErrors.BadRequest("No fields provided for update");
   }
+
+  const payload: any = { ...body };
 
   const { newPassword, oldPassword, ...other } = payload;
-
-  const readyData: any = { ...other };
-
-  // ✅ Handle file if uploaded
-  if (file) {
-    const savedFile = await uploader.uploadImages([file]);
-    const url = savedFile[0].fileUrl;
-    readyData.avatar = url;
-  }
 
   // ✅ Verify old password
   if (newPassword && oldPassword) {
@@ -103,28 +94,24 @@ const updateUser = async (req: Request) => {
     const hashedPassword = await passwordHelper.convertHashPassword(
       newPassword
     );
-    readyData.password = hashedPassword;
+    other.password = hashedPassword;
   }
 
   const updatedUser = await prisma.user.update({
-    data: readyData,
+    data: other,
     where: { id },
   });
 
-  if (file) {
-    await uploader.deleteImage(isExistUser.avatar as string);
-  }
   const { password, ...safeUser } = updatedUser;
   return safeUser;
 };
 
 const deleteUser = async (req: Request) => {
-  const session = await Auth([Role.ADMIN, Role.SUPER_ADMIN]);
+  await RequireSuperAdmin();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
-  if (!id) throw ApiErrors.BadRequest("user id is required");
-  if (session.user.id == id) {
-    throw ApiErrors.BadRequest("you not allow delete you");
+  if (!id) {
+    throw ApiErrors.BadRequest("User id is required");
   }
 
   const isExistUser = await prisma.user.findUnique({
@@ -137,13 +124,6 @@ const deleteUser = async (req: Request) => {
     throw ApiErrors.NotFound("user not found");
   }
 
-  if (
-    isExistUser.role === Role.SUPER_ADMIN &&
-    session.user.role === Role.ADMIN
-  ) {
-    throw ApiErrors.Forbidden("you are not allow to delete super_admin");
-  }
-
   await prisma.user.delete({ where: { id } });
 };
 
@@ -151,5 +131,6 @@ export const UserService = {
   createUser,
   getAllUser,
   deleteUser,
-  updateUser,
+  updateLoggedInUser,
+  getLoggedInUser,
 };

@@ -1,15 +1,15 @@
+import { LANGUAGE_KEY } from "@/constants/keys";
 import { LocalStorage } from "@/lib/localstorage";
 import { createSlice } from "@reduxjs/toolkit";
 
 export type ILanguage = "en" | "bn";
-export const LANGUAGE_KEY = "lang";
 
 export interface ILanguageState {
   currentLanguage: ILanguage;
 }
 
 const initialState: ILanguageState = {
-  currentLanguage:  localStorage.getItem(LANGUAGE_KEY) as ILanguage || "bn",
+  currentLanguage: (localStorage?.getItem(LANGUAGE_KEY) as ILanguage) || "bn",
 };
 
 const languageSlice = createSlice({

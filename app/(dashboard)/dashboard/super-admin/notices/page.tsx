@@ -21,7 +21,7 @@ export default function NoticesManagementPage() {
       title: "New Appointment System Update",
       content:
         "We have upgraded our appointment booking system for better user experience. Please note that all appointments will now require confirmation via email.",
-      createdBy: "admin@clinic.com",
+
       createdAt: "2024-01-15T09:00:00Z",
       isActive: true,
       isPinned: true,
@@ -31,7 +31,7 @@ export default function NoticesManagementPage() {
       title: "Holiday Schedule Notice",
       content:
         "Our clinic will be closed on January 26th for Republic Day. Emergency services will be available through our partner hospital.",
-      createdBy: "admin@clinic.com",
+
       createdAt: "2024-01-10T14:30:00Z",
       isActive: true,
       isPinned: false,
@@ -41,7 +41,7 @@ export default function NoticesManagementPage() {
       title: "New COVID-19 Safety Protocols",
       content:
         "Updated safety measures are now in place. Please wear masks in common areas and maintain social distancing in waiting rooms.",
-      createdBy: "health.officer@clinic.com",
+
       createdAt: "2024-01-08T11:15:00Z",
       isActive: false,
       isPinned: false,
@@ -51,7 +51,7 @@ export default function NoticesManagementPage() {
       title: "Telemedicine Services Available",
       content:
         "We now offer online consultations for routine check-ups and follow-up appointments. Book your virtual visit through our portal.",
-      createdBy: "admin@clinic.com",
+
       createdAt: "2024-01-05T16:45:00Z",
       isActive: true,
       isPinned: false,

@@ -23,8 +23,8 @@ export function DashboardHeader({ user, onMenuClick }: DashboardHeaderProps) {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      router.push("/login");
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      console.log(response);
       router.refresh();
     } catch (error) {
       console.error("Logout error:", error);
@@ -54,7 +54,7 @@ export function DashboardHeader({ user, onMenuClick }: DashboardHeaderProps) {
             <button className="relative h-8 w-8 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
               <Avatar className="h-8 w-8">
                 <AvatarFallback>
-                  {user.name
+                  {user?.name
                     .split(" ")
                     .map((n) => n[0])
                     .join("")
@@ -67,9 +67,9 @@ export function DashboardHeader({ user, onMenuClick }: DashboardHeaderProps) {
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <div className="flex items-center justify-start gap-2 p-2">
               <div className="flex flex-col space-y-1 leading-none">
-                <p className="font-medium">{user.name}</p>
+                <p className="font-medium">{user?.name}</p>
                 <p className="w-[200px] truncate text-sm text-muted-foreground">
-                  {user.email}
+                  {user?.email}
                 </p>
               </div>
             </div>

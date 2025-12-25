@@ -12,8 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Bell } from "lucide-react";
 import { format } from "date-fns";
-import { t } from "./shared/lenguageSwitch";
- 
+import { useTranslation } from "./shared/languageSwitch";
 
 interface Notice {
   id: string;
@@ -24,6 +23,7 @@ interface Notice {
 }
 
 export function NoticeBoard() {
+  const t = useTranslation();
   const [notices, setNotices] = useState<Notice[]>([
     {
       id: "notice-001",

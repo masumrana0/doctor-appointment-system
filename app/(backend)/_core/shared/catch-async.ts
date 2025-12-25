@@ -5,7 +5,7 @@ type AsyncHandler = (req: Request) => Promise<NextResponse>;
 
 const catchAsync =
   (fn: AsyncHandler): AsyncHandler =>
-  async (req: Request): Promise<NextResponse> => {
+  async (req: any): Promise<NextResponse> => {
     try {
       return await fn(req);
     } catch (error: any) {

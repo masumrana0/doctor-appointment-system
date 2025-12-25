@@ -65,7 +65,23 @@ export const translations = {
     appointmentDate: "Appointment Date",
     preferredTime: "Preferred Time",
     reasonForVisit: "Reason for Visit (Optional)",
-    submit: "Book Appointment",
+    appointmentSubmit: "Book Appointment",
+
+    // Modals
+    bookingSuccessTitle: "Appointment Booked Successfully!",
+    bookingSuccessMessagePrefix:
+      "Your appointment has been successfully scheduled for",
+    bookingSuccessDateTime: "Your scheduled date & time",
+    bookingSuccessAt: "at",
+    bookingSuccessMessageSerial: "Your Serial Number is",
+    bookingSuccessSerialPending: "N/A",
+    bookingSuccessMessageNote:
+      "Please arrive 10 minutes before your scheduled time.",
+    bookingErrorTitle: "Booking Failed",
+    bookingErrorMessageFallback:
+      "Failed to book appointment. Please try again.",
+    modalPrimaryOk: "OK",
+    modalPrimaryRetry: "Try Again",
 
     // Notices
     importantNotices: "Important Notices",
@@ -138,7 +154,23 @@ export const translations = {
     appointmentDate: "অ্যাপয়েন্টমেন্ট তারিখ",
     preferredTime: "পছন্দের সময়",
     reasonForVisit: "পরিদর্শনের কারণ (ঐচ্ছিক)",
-    submit: "অ্যাপয়েন্টমেন্ট বুক করুন",
+    appointmentSubmit: "অ্যাপয়েন্টমেন্ট বুক করুন",
+
+    // Modals
+    bookingSuccessTitle: "অ্যাপয়েন্টমেন্ট সফলভাবে বুক হয়েছে!",
+    bookingSuccessMessagePrefix:
+      "আপনার অ্যাপয়েন্টমেন্ট সফলভাবে নির্ধারিত হয়েছে",
+    bookingSuccessDateTime: "আপনার নির্ধারিত তারিখ ও সময়",
+    bookingSuccessAt: "সময়",
+    bookingSuccessMessageSerial: "আপনার সিরিয়াল নম্বর",
+    bookingSuccessSerialPending: "প্রযোজ্য নয়",
+    bookingSuccessMessageNote:
+      "অনুগ্রহ করে নির্ধারিত সময়ের ১০ মিনিট আগে উপস্থিত হোন।",
+    bookingErrorTitle: "বুকিং ব্যর্থ হয়েছে",
+    bookingErrorMessageFallback:
+      "অ্যাপয়েন্টমেন্ট বুক করতে ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।",
+    modalPrimaryOk: "ঠিক আছে",
+    modalPrimaryRetry: "পুনরায় চেষ্টা করুন",
 
     // Notices
     importantNotices: "গুরুত্বপূর্ণ বিজ্ঞপ্তি",

@@ -1,9 +1,10 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
 import React from "react";
-import { t } from "./shared/lenguageSwitch";
+import { useTranslation } from "./shared/languageSwitch";
 
 const AboutSection = () => {
+  const t = useTranslation();
   return (
     <section id="about" className="w-full py-12 md:py-20 bg-muted/50">
       <div className="container mx-auto px-4">

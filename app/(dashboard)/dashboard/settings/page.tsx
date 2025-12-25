@@ -1,11 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { ProfileSettings } from "../../components/profile-settings";
 
-export default function SettingsPage() {
-  const router = useRouter();
-
+const SettingsPage = () => {
   return (
     <div className="space-y-6">
       <div>
@@ -18,4 +15,6 @@ export default function SettingsPage() {
       <ProfileSettings />
     </div>
   );
-}
+};
+
+export default SettingsPage;

@@ -1,22 +1,12 @@
 import React from "react";
 import { DashboardClientLayout } from "./components/dashboard-layout";
-
-const layout = ({ children }: { children: React.ReactNode }) => {
+import { requireAuth } from "../(backend)/_core/error-handler/auth";
+export const    dynamic = "force-dynamic";
+const layout = async ({ children }: { children: React.ReactNode }) => {
+  const user = await requireAuth();
   return (
     <>
-      <DashboardClientLayout
-        user={{
-          id: "213974",
-          email: "user@example.com",
-          password: "password",
-          name: "John Doe",
-          role: "super_admin",
-          createdAt: "2024-01-01",
-          updatedAt: "2024-01-01",
-        }}
-      >
-        {children}
-      </DashboardClientLayout>
+      <DashboardClientLayout user={user}>{children}</DashboardClientLayout>
     </>
   );
 };

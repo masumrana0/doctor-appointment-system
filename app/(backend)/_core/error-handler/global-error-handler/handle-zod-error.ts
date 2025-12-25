@@ -2,7 +2,7 @@ import { z } from "zod";
 import { IErrorMessage } from "../../interface/response";
 
 export const handleZodError = (error: z.ZodError) => {
-  const errorMessages: IErrorMessage[] = error.errors.map((err: any) => ({
+  const errorMessages: IErrorMessage[] = error.issues.map((err) => ({
     path: err.path.join("."),
     message: err.message,
   }));

@@ -13,6 +13,15 @@ const createUser = catchAsync(async (req: Request) => {
   });
 });
 
+const getLoggedInUser = catchAsync(async () => {
+  const result = await UserService.getLoggedInUser();
+  
+  return sendResponse({
+    statusCode: status.OK,
+    message: "user fetched successful",
+    data: result,
+  });
+});
 const getAllUser = catchAsync(async () => {
   const result = await UserService.getAllUser();
 
@@ -23,8 +32,8 @@ const getAllUser = catchAsync(async () => {
   });
 });
 
-const updateUser = catchAsync(async (req: Request) => {
-  const result = await UserService.updateUser(req);
+const updateLoggedInUser = catchAsync(async (req: Request) => {
+  const result = await UserService.updateLoggedInUser(req);
 
   return sendResponse({
     statusCode: status.OK,
@@ -46,6 +55,7 @@ const deleteUSer = catchAsync(async (req: Request) => {
 export const UserController = {
   createUser,
   getAllUser,
-  updateUser,
+  updateLoggedInUser,
   deleteUSer,
+  getLoggedInUser,
 };

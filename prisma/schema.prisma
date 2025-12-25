@@ -26,8 +26,8 @@ model Appointment {
   patientName  String
   patientEmail String?
   patientPhone String
-  date         String
-  timeSlot     String
+  date          DateTime
+  timeSlot     String?
   serialNumber Int
   status       AppointmentStatus @default(pending)
   notes        String?

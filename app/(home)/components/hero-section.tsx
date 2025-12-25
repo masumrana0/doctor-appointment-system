@@ -2,11 +2,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { t } from "./shared/lenguageSwitch";
+import { useTranslation } from "./shared/languageSwitch";
 
 const HeroSection = () => {
+  const t = useTranslation();
   return (
-    <section className="w-full py-12 md:py-20 bg-gradient-to-b from-primary/5 to-background animate-in fade-in duration-1000">
+    <section className="w-full py-12 md:py-20 bg-linear-to-b from-primary/5 to-background animate-in fade-in duration-1000">
       <div className="container mx-auto px-4">
         <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
           <div className="flex flex-col justify-center space-y-6 animate-in slide-in-from-left duration-700">

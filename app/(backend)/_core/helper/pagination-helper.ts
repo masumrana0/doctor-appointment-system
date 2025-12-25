@@ -6,6 +6,8 @@
  *
  */
 
+import { IMeta } from "../interface/response";
+
 type SortOrder = "asc" | "desc";
 type IOptions = {
   page?: number;
@@ -24,7 +26,7 @@ type IOptionsResult = {
 
 const calculatePagination = (options: IOptions): IOptionsResult => {
   const page = Number(options.page || 1);
-  const limit = Number(options.limit || 10);
+  const limit = Number(options.limit || 20);
   const skip = (page - 1) * limit;
 
   const sortBy = options.sortBy || "createdAt";
@@ -39,6 +41,25 @@ const calculatePagination = (options: IOptions): IOptionsResult => {
   };
 };
 
+const derivePaginationStats = (meta: IMeta) => {
+  const totalPages = Math.ceil((meta?.total || 0) / (meta?.limit || 1));
+  const hasNextPage = (meta?.page || 0) < totalPages;
+  const hasPreviousPage = (meta?.page || 0) > 1;
+  const startIndex =
+    meta?.total === 0 ? 0 : (meta?.page! - 1) * meta?.limit! + 1;
+  const endIndex = Math.min(meta?.page! * meta?.limit!, meta?.total || 0);
+  const totalPagesLabel = totalPages;
+  return {
+    totalPages,
+    hasNextPage,
+    hasPreviousPage,
+    startIndex,
+    endIndex,
+    totalPagesLabel,
+  };
+};
+
 export const paginationHelpers = {
   calculatePagination,
+  derivePaginationStats,
 };

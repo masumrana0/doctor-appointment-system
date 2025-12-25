@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
-import { t } from "./lenguageSwitch";
+import { useTranslation } from "./languageSwitch";
 
 const Footer = () => {
+  const t = useTranslation();
   return (
     <footer className="w-full border-t bg-muted/30 py-8 mt-auto">
       <div className="container mx-auto px-4">

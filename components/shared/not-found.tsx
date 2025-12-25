@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -7,8 +6,6 @@ import { Home, Calendar, Phone, ArrowLeft } from "lucide-react";
 
 export default function NotFoundPage() {
   const [mounted, setMounted] = useState(false);
-
-  
 
   useEffect(() => {
     setMounted(true);
