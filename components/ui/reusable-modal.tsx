@@ -133,12 +133,7 @@ export function ReusableModal({
 export function useModal() {
   const [modalState, setModalState] = useState<ModalState>(initialState);
 
-  const showModal = (
-    successTitle: string | React.JSX.Element,
-    successContent: string | React.JSX.Element,
-    p0: string,
-    config: Omit<ModalState, "isOpen">
-  ) => {
+  const showModal = (config: Omit<ModalState, "isOpen">) => {
     setModalState({ ...config, isOpen: true });
   };
 

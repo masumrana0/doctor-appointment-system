@@ -1,4 +1,4 @@
-"use client";
+"use client"; 
 
 import type React from "react";
 
@@ -31,26 +31,26 @@ export function NoticeManagement() {
     e.preventDefault();
     setIsLoading(true);
 
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("/api/notices", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ ...formData, isActive: true }),
-      });
+    // try {
+    //   const token = localStorage.getItem("token");
+    //   const response = await fetch("/api/notices", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       Authorization: `Bearer ${token}`,
+    //     },
+    //     body: JSON.stringify({ ...formData, isActive: true }),
+    //   });
 
-      if (response.ok) {
-        setFormData({ title: "", content: "" });
-        // onNoticeCreated?.();
-      }
-    } catch (error) {
-      console.error("[v0] Failed to create notice:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    //   if (response.ok) {
+    //     setFormData({ title: "", content: "" });
+    //     // onNoticeCreated?.();
+    //   }
+    // } catch (error) {
+    //   console.error("[v0] Failed to create notice:", error);
+    // } finally {
+    //   setIsLoading(false);
+    // }
   };
 
   return (

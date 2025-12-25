@@ -1,15 +1,7 @@
-"use client";
-
-import { useEffect, useState } from "react";
+export const dynamic = "force-dynamic";
 import AppointmentSection from "../components/appointment-section";
 
 const AppointmentPage = () => {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   return <AppointmentSection />;
 };
 

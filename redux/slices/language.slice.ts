@@ -1,5 +1,6 @@
+"use client";
 import { LANGUAGE_KEY } from "@/constants/keys";
-import { LocalStorage } from "@/lib/localstorage";
+ 
 import { createSlice } from "@reduxjs/toolkit";
 
 export type ILanguage = "en" | "bn";
@@ -17,7 +18,7 @@ const languageSlice = createSlice({
   initialState,
   reducers: {
     setLanguage(state, action) {
-      LocalStorage.setItem(LANGUAGE_KEY, action.payload);
+      localStorage?.setItem(LANGUAGE_KEY, action.payload);
       state.currentLanguage = action.payload;
     },
   },

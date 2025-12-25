@@ -97,7 +97,7 @@ const AppointmentBooking = () => {
         const [successTitle, successContent] =
           buildAppointmentSuccessModalContent(result.data, t);
 
-        showModal(successTitle, successContent, t("modalPrimaryOk"), {
+        showModal({
           title: successTitle,
           message: successContent,
           type: "success",

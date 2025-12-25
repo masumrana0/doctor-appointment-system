@@ -22,4 +22,6 @@ const authQuery = baseQuery.injectEndpoints({
   overrideExisting: false,
 });
 
-export const { useLoginMutation, usePasswordChangeMutation } = authQuery;
+export const { useLoginMutation, usePasswordChangeMutation
+  
+ } = authQuery;
