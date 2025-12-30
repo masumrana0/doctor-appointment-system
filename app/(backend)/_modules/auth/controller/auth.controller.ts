@@ -2,18 +2,18 @@ import status from "http-status";
 import catchAsync from "@/app/(backend)/_core/shared/catch-async";
 import { AuthService } from "../service/auth.service";
 import sendResponse from "@/app/(backend)/_core/shared/api-response";
-import { AuthUtils } from "@/app/(backend)/_core/error-handler/auth";
+import { Auth } from "@/app/(backend)/_core/error-handler/auth";
 
 const login = catchAsync(async (req: Request) => {
-  const token = await AuthService.login(req);
-
+  const { token, user } = await AuthService.login(req);
+  const auth = Auth.getInstance();
   const res = sendResponse({
     statusCode: status.OK,
     message: "User logged in successfully",
-    data: null,
+    data: user,
   });
 
-  return AuthUtils.setAuthCookies(res, token);
+  return auth.setAuthCookies(res, token);
 });
 
 const passwordChange = catchAsync(async (req: Request) => {

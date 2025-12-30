@@ -1,14 +1,14 @@
 "use client";
 import React from "react";
 
-const Loader = () => {
+const Loader = ({height = "50vh"}) => {
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setMounted(true);
   }, []);
   return (
-    <div className="h-[50vh] flex justify-center items-center">
+    <div className={`flex h-[${height}] w-full items-center justify-center`}>
       <div
         className={`mb-8 transition-all duration-1000 ${
           mounted ? "scale-100 opacity-100" : "scale-50 opacity-0"

@@ -15,6 +15,7 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { User } from "@/interface";
+import { dashboardNavigation } from "@/constants/dashboard-nav";
 
 interface DashboardSidebarProps {
   user: User;
@@ -30,35 +31,6 @@ export function DashboardSidebar({
   isDesktop = false,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
-
-  const isSuperAdmin = user?.role === "super_admin";
-
-  const navigation = [
-    {
-      name: "Dashboard",
-      href: isSuperAdmin ? "/dashboard/super-admin" : "/dashboard/admin",
-      icon: LayoutDashboard,
-    },
-    ...(isSuperAdmin
-      ? [
-          {
-            name: "Staff Management",
-            href: "/dashboard/super-admin/staff",
-            icon: UserCog,
-          },
-          {
-            name: "Notices",
-            href: "/dashboard/super-admin/notices",
-            icon: Bell,
-          },
-        ]
-      : []),
-    { name: "Appointments", href: "/dashboard/appointments", icon: Calendar },
-
-    { name: "Patients", href: "/dashboard/patients", icon: Users },
-    { name: "Settings", href: "/dashboard/settings", icon: Settings },
-  ];
-
   return (
     <>
       {/* Mobile overlay */}
@@ -101,7 +73,7 @@ export function DashboardSidebar({
 
         {/* Navigation */}
         <nav className="p-4 space-y-2">
-          {navigation.map((item) => {
+          {dashboardNavigation.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link key={item.name} href={item.href}>

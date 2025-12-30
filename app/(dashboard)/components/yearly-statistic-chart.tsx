@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { Bar, BarChart, XAxis, YAxis, CartesianGrid } from "recharts";
 import {
   Card,
@@ -16,93 +16,33 @@ import {
 } from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { YearlyStatisticsPoint } from "@/interface";
 
-type YearKey = "2020" | "2021" | "2022" | "2023" | "2024";
-
-const yearlyMonthData: Record<
-  YearKey,
-  { month: string; appointments: number; cancellations: number }[]
-> = {
-  "2020": [
-    { month: "Jan", appointments: 280, cancellations: 32 },
-    { month: "Feb", appointments: 310, cancellations: 28 },
-    { month: "Mar", appointments: 150, cancellations: 45 },
-    { month: "Apr", appointments: 120, cancellations: 38 },
-    { month: "May", appointments: 180, cancellations: 22 },
-    { month: "Jun", appointments: 250, cancellations: 30 },
-    { month: "Jul", appointments: 320, cancellations: 35 },
-    { month: "Aug", appointments: 340, cancellations: 28 },
-    { month: "Sep", appointments: 380, cancellations: 40 },
-    { month: "Oct", appointments: 360, cancellations: 32 },
-    { month: "Nov", appointments: 320, cancellations: 25 },
-    { month: "Dec", appointments: 280, cancellations: 30 },
-  ],
-  "2021": [
-    { month: "Jan", appointments: 350, cancellations: 38 },
-    { month: "Feb", appointments: 380, cancellations: 32 },
-    { month: "Mar", appointments: 420, cancellations: 45 },
-    { month: "Apr", appointments: 390, cancellations: 40 },
-    { month: "May", appointments: 450, cancellations: 35 },
-    { month: "Jun", appointments: 480, cancellations: 42 },
-    { month: "Jul", appointments: 520, cancellations: 48 },
-    { month: "Aug", appointments: 490, cancellations: 38 },
-    { month: "Sep", appointments: 510, cancellations: 45 },
-    { month: "Oct", appointments: 480, cancellations: 40 },
-    { month: "Nov", appointments: 420, cancellations: 35 },
-    { month: "Dec", appointments: 380, cancellations: 42 },
-  ],
-  "2022": [
-    { month: "Jan", appointments: 420, cancellations: 45 },
-    { month: "Feb", appointments: 380, cancellations: 38 },
-    { month: "Mar", appointments: 510, cancellations: 52 },
-    { month: "Apr", appointments: 480, cancellations: 48 },
-    { month: "May", appointments: 550, cancellations: 42 },
-    { month: "Jun", appointments: 520, cancellations: 55 },
-    { month: "Jul", appointments: 580, cancellations: 50 },
-    { month: "Aug", appointments: 560, cancellations: 45 },
-    { month: "Sep", appointments: 590, cancellations: 58 },
-    { month: "Oct", appointments: 540, cancellations: 48 },
-    { month: "Nov", appointments: 480, cancellations: 42 },
-    { month: "Dec", appointments: 420, cancellations: 38 },
-  ],
-  "2023": [
-    { month: "Jan", appointments: 480, cancellations: 52 },
-    { month: "Feb", appointments: 420, cancellations: 45 },
-    { month: "Mar", appointments: 580, cancellations: 58 },
-    { month: "Apr", appointments: 550, cancellations: 52 },
-    { month: "May", appointments: 620, cancellations: 48 },
-    { month: "Jun", appointments: 590, cancellations: 62 },
-    { month: "Jul", appointments: 650, cancellations: 55 },
-    { month: "Aug", appointments: 680, cancellations: 58 },
-    { month: "Sep", appointments: 720, cancellations: 65 },
-    { month: "Oct", appointments: 680, cancellations: 58 },
-    { month: "Nov", appointments: 620, cancellations: 52 },
-    { month: "Dec", appointments: 550, cancellations: 48 },
-  ],
-  "2024": [
-    { month: "Jan", appointments: 520, cancellations: 48 },
-    { month: "Feb", appointments: 480, cancellations: 42 },
-    { month: "Mar", appointments: 620, cancellations: 55 },
-    { month: "Apr", appointments: 580, cancellations: 50 },
-    { month: "May", appointments: 680, cancellations: 45 },
-    { month: "Jun", appointments: 720, cancellations: 58 },
-    { month: "Jul", appointments: 780, cancellations: 52 },
-    { month: "Aug", appointments: 820, cancellations: 60 },
-    { month: "Sep", appointments: 850, cancellations: 65 },
-    { month: "Oct", appointments: 800, cancellations: 55 },
-    { month: "Nov", appointments: 750, cancellations: 48 },
-    { month: "Dec", appointments: 680, cancellations: 52 },
-  ],
+type Props = {
+  years: string[];
+  defaultYear: string;
+  dataByYear: Record<string, YearlyStatisticsPoint[]>;
 };
 
-const availableYears: YearKey[] = ["2020", "2021", "2022", "2023", "2024"];
+export default function YearlyStatisticsChart({
+  years,
+  defaultYear,
+  dataByYear,
+}: Props) {
+  const safeDefaultYear = useMemo(() => {
+    if (years.includes(defaultYear)) return defaultYear;
+    return years[years.length - 1] ?? defaultYear;
+  }, [years, defaultYear]);
 
-export default function YearlyStatisticsChart() {
-  const [selectedYear, setSelectedYear] = useState<YearKey>("2024");
+  const [selectedYear, setSelectedYear] = useState<string>(safeDefaultYear);
   const [isAnimating, setIsAnimating] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const handleYearChange = (year: YearKey) => {
+  useEffect(() => {
+    setSelectedYear(safeDefaultYear);
+  }, [safeDefaultYear]);
+
+  const handleYearChange = (year: string) => {
     setIsAnimating(true);
     setSelectedYear(year);
     setTimeout(() => setIsAnimating(false), 300);
@@ -115,11 +55,13 @@ export default function YearlyStatisticsChart() {
     }
   }, []);
 
-  const totalAppointments = yearlyMonthData[selectedYear].reduce(
+  const chartData = dataByYear[selectedYear] ?? [];
+
+  const totalAppointments = chartData.reduce(
     (sum, m) => sum + m.appointments,
     0
   );
-  const totalCancellations = yearlyMonthData[selectedYear].reduce(
+  const totalCancellations = chartData.reduce(
     (sum, m) => sum + m.cancellations,
     0
   );
@@ -140,7 +82,7 @@ export default function YearlyStatisticsChart() {
             ref={scrollContainerRef}
             className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
           >
-            {availableYears.map((year) => (
+            {years.map((year) => (
               <Button
                 key={year}
                 onClick={() => handleYearChange(year)}
@@ -191,10 +133,10 @@ export default function YearlyStatisticsChart() {
                 color: "oklch(0.577 0.245 27.325)",
               },
             }}
-            className="h-[260px] w-full sm:h-[300px]"
+            className="h-65 w-full sm:h-75"
           >
             <BarChart
-              data={yearlyMonthData[selectedYear]}
+              data={chartData}
               margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
             >
               <CartesianGrid

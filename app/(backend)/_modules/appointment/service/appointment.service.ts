@@ -1,5 +1,5 @@
 import { paginationFields } from "@/app/(backend)/_core/constants/patination.constant";
-import { requireAuth } from "@/app/(backend)/_core/error-handler/auth";
+import { Auth } from "@/app/(backend)/_core/error-handler/auth";
 import { paginationHelpers } from "@/app/(backend)/_core/helper/pagination-helper";
 import { IServiceResponse } from "@/app/(backend)/_core/interface/response";
 import pick from "@/app/(backend)/_core/shared/pick";
@@ -9,12 +9,17 @@ import {
   Prisma,
 } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { expirePendingAppointments } from "@/app/(backend)/_core/helper/appointment-expiry";
 
 // create Appointment
 const createAppointment = async (req: Request) => {
   const body = await req.json();
 
   const { serialNumber, ...appointmentData } = body;
+
+  if (appointmentData?.date) {
+    appointmentData.date = new Date(appointmentData.date).toISOString();
+  }
 
   const lastAppointment = await prisma.appointment.findFirst({
     where: {
@@ -62,7 +67,8 @@ const createAppointment = async (req: Request) => {
 const getAllAppointment = async (
   req: Request
 ): Promise<IServiceResponse<Appointment[]>> => {
-  await requireAuth();
+  await Auth.getInstance().requireAuth();
+  await expirePendingAppointments();
   const url = new URL(req.url);
   const searchParams = url.searchParams;
 
@@ -144,7 +150,8 @@ const getAllAppointment = async (
 
 // update appointment status to completed
 const updateStatusCompleted = async (req: Request) => {
-  await requireAuth();
+  await Auth.getInstance().requireAuth();
+  await expirePendingAppointments();
   const body = await req.json();
   const { id } = body;
 

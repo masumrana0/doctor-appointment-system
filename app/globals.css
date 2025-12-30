@@ -197,6 +197,15 @@
   }
 }
 
+@keyframes notice-ticker-ltr {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
 /* Animation utility classes */
 .animate-in {
   animation-fill-mode: both;
@@ -244,4 +253,8 @@
 
 .delay-300 {
   animation-delay: 300ms;
+}
+
+.notice-ticker-ltr {
+  animation: notice-ticker-ltr 18s linear infinite;
 }

@@ -1,6 +1,5 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { translations } from "@/lib/translation";
 import { Calendar, Shield } from "lucide-react";
 import Link from "next/link";
 import { LanguageSwitch, useTranslation } from "./languageSwitch";

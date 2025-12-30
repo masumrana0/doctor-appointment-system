@@ -13,20 +13,17 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import type { WeeklyStatisticsPoint } from "@/interface";
 
-const lastWeekData = [
-  { day: "Mon", date: "Dec 9", appointments: 24, completed: 22, cancelled: 2 },
-  { day: "Tue", date: "Dec 10", appointments: 32, completed: 28, cancelled: 4 },
-  { day: "Wed", date: "Dec 11", appointments: 28, completed: 25, cancelled: 3 },
-  { day: "Thu", date: "Dec 12", appointments: 35, completed: 32, cancelled: 3 },
-  { day: "Fri", date: "Dec 13", appointments: 42, completed: 38, cancelled: 4 },
-  { day: "Sat", date: "Dec 14", appointments: 18, completed: 16, cancelled: 2 },
-  { day: "Sun", date: "Dec 15", appointments: 8, completed: 7, cancelled: 1 },
-];
+type Props = {
+  rangeLabel: string;
+  data: WeeklyStatisticsPoint[];
+};
 
-export default function WeeklyStatisticChart() {
-  const weekTotal = lastWeekData.reduce((sum, d) => sum + d.appointments, 0);
-  const weekCompleted = lastWeekData.reduce((sum, d) => sum + d.completed, 0);
+export default function WeeklyStatisticChart({ rangeLabel, data }: Props) {
+  const weekTotal = data.reduce((sum, d) => sum + d.appointments, 0);
+  const weekCompleted = data.reduce((sum, d) => sum + d.completed, 0);
+  const rate = weekTotal > 0 ? (weekCompleted / weekTotal) * 100 : 0;
 
   return (
     <Card className="border border-border/40 bg-background/60 shadow-xl backdrop-blur-xl transition-all duration-300">
@@ -37,7 +34,7 @@ export default function WeeklyStatisticChart() {
               Last Week Overview
             </CardTitle>
             <CardDescription className="text-sm">
-              Dec 9 - Dec 15, 2024
+              {rangeLabel}
             </CardDescription>
           </div>
           <div className="flex flex-wrap gap-3 text-xs">
@@ -57,7 +54,7 @@ export default function WeeklyStatisticChart() {
               <span className="h-2.5 w-2.5 rounded-full bg-chart-4" />
               <span className="text-muted-foreground">Rate:</span>
               <span className="font-semibold text-foreground">
-                {((weekCompleted / weekTotal) * 100).toFixed(1)}%
+                {rate.toFixed(1)}%
               </span>
             </div>
           </div>
@@ -75,10 +72,10 @@ export default function WeeklyStatisticChart() {
               color: "oklch(0.6 0.118 184.704)",
             },
           }}
-          className="h-[260px] w-full sm:h-[300px]"
+          className="h-65 w-full sm:h-75"
         >
           <LineChart
-            data={lastWeekData}
+            data={data}
             margin={{ top: 10, right: 10, bottom: 0, left: -20 }}
           >
             <CartesianGrid

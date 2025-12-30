@@ -1,11 +1,12 @@
-import React from "react";
+import type { Metadata } from "next";
+import { AdminDashboardOverview } from "../components/super-admin-dashboard";
+import { getAdminDashboardStats } from "@/lib/actions";
 
-const DashboardPage = () => {
-  return (
-    <div>
-      <h2>This is dashboard page</h2>
-    </div>
-  );
+export const metadata: Metadata = {
+  title: "Dashboard",
 };
 
-export default DashboardPage;
+export default async function SuperAdminPage() {
+  const overview = await getAdminDashboardStats();
+  return <AdminDashboardOverview overview={overview} />;
+}

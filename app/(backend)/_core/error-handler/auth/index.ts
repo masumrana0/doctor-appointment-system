@@ -2,17 +2,15 @@ import { UserRole } from "@/app/generated/prisma/enums";
 import { ApiErrors } from "../../errors/api-error";
 import { User } from "@/app/generated/prisma/browser";
 import { AUTH_TOKEN } from "@/constants/keys";
-import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { NextResponse } from "next/server";
+import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import type { ReadonlyRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
-import sendResponse from "../../shared/api-response";
-import { redirect } from "next/navigation";
 
 export class Auth {
   private static instance: Auth;
   private readonly JWT_SECRET: unknown = process.env.JWT_SECRET;
   private readonly JWT_EXPIRES_IN: unknown = process.env.JWT_EXPIRES_IN;
+  private readonly secretKey: Uint8Array;
 
   private constructor() {
     if (!process.env.JWT_SECRET || !process.env.JWT_EXPIRES_IN) {
@@ -22,6 +20,7 @@ export class Auth {
     }
     this.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
     this.JWT_SECRET = process.env.JWT_SECRET;
+    this.secretKey = new TextEncoder().encode(process.env.JWT_SECRET);
   }
 
   /**
@@ -39,8 +38,8 @@ export class Auth {
     try {
       return await fn(...args);
     } catch (error) {
-      // await this.redirectAndClearCookies();
-      throw ApiErrors.Unauthorized("Invalid or expired token");
+      await this.redirectAndClearCookies();
+      // throw ApiErrors.Unauthorized("Invalid or expired token");
     }
   };
 
@@ -50,16 +49,17 @@ export class Auth {
    * @param expiresIn - Token expiration time
    * @returns Generated JWT token
    */
-  public createToken(payload: Record<string, any>): string {
+  public async createToken(payload: Record<string, any>): Promise<string> {
     if (!this.JWT_SECRET || !this.JWT_EXPIRES_IN) {
       throw ApiErrors.InternalServerError(
         "JWT_SECRET OR JWT_EXPIRES_IN not configured properly"
       );
     }
-    const options: jwt.SignOptions = {
-      expiresIn: this.JWT_EXPIRES_IN as any,
-    };
-    const token = jwt.sign(payload, this.JWT_SECRET as string, options);
+    const token = await new SignJWT(payload)
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime(this.JWT_EXPIRES_IN as string)
+      .sign(this.secretKey);
     return token;
   }
 
@@ -69,8 +69,8 @@ export class Auth {
    * @returns Decoded token payload
    */
   public verifyToken(token: string) {
-    return this.tryCatchWrapper(() => {
-      const payload = jwt.verify(token, this.JWT_SECRET as string);
+    return this.tryCatchWrapper(async () => {
+      const { payload } = await jwtVerify(token, this.secretKey);
 
       return payload;
     });
@@ -198,37 +198,16 @@ export class Auth {
   }
 
   public async redirectAndClearCookies() {
-    // We cannot call cookieStore.delete() here if this is called from a Layout.
-    // Instead, we redirect to our specialized API route.
+    // const cookieStore = await cookies();
+    // cookieStore.delete(AUTH_TOKEN);
     // redirect("/login");
+    return false;
   }
 }
 
-// Export singleton instance for easy access
-export const AuthUtils = Auth.getInstance();
+export const authInstance = Auth.getInstance();
 
-// Legacy function exports for backward compatibility
-export function requireAuth(): Promise<User | null | any> {
-  return AuthUtils.requireAuth() as Promise<User>;
-}
-
-export async function getCurrentUser(): Promise<User | null> {
-  return AuthUtils.getCurrentUser();
-}
-
-export function verifyToken(token: string): any {
-  return AuthUtils.verifyToken(token);
-}
-
-export function isSuperAdmin(): boolean {
-  const user = AuthUtils.getCurrentUser() as unknown as User;
-  return AuthUtils.hasRole(user, UserRole.super_admin);
-}
-
-export function RequireSuperAdmin(): Promise<User> {
-  return AuthUtils.requireSuperAdmin();
-}
-
-export function getCurrentUserAsync(): Promise<User | null> {
-  return AuthUtils.getCurrentUser();
-}
+export const requireAuth = async (): Promise<User | null | any> => {
+  const user = await authInstance.requireAuth();
+  return user;
+};

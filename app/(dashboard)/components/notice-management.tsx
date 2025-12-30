@@ -1,8 +1,6 @@
-"use client"; 
-
+"use client";
 import type React from "react";
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,43 +12,77 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Bell, Send } from "lucide-react";
+import { Bell, Loader2, Send } from "lucide-react";
+import type { Notice } from "@/interface";
+import {
+  useCreateNoticeMutation,
+  useUpdateNoticeMutation,
+} from "@/redux/query/notice-query";
+import { toast } from "sonner";
 
-interface NoticeManagementProps {
-  onNoticeCreated?: () => void;
-}
+type NoticeManagementProps = {
+  editingNotice?: Notice | null;
+  onCancelEdit?: () => void;
+};
 
-export function NoticeManagement() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-  });
+export function NoticeManagement({
+  editingNotice,
+  onCancelEdit,
+}: NoticeManagementProps) {
+  const [createNotice, { isLoading: isCreating }] = useCreateNoticeMutation();
+  const [updateNotice, { isLoading: isUpdating }] = useUpdateNoticeMutation();
+  const isSubmitting = isCreating || isUpdating;
+
+  const defaultFormData = { title: "", content: "", isPinNav: false };
+  const [formData, setFormData] = useState(defaultFormData);
+
+  useEffect(() => {
+    if (editingNotice) {
+      setFormData({
+        title: editingNotice.title ?? "",
+        content: editingNotice.content ?? "",
+        isPinNav: Boolean(editingNotice.isPinNav),
+      });
+      return;
+    }
+    setFormData(defaultFormData);
+  }, [editingNotice]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    if (editingNotice?.id) {
+      const response = await updateNotice({
+        id: editingNotice.id,
+        data: {
+          title: formData.title,
+          content: formData.content,
+          isPinNav: formData.isPinNav,
+        },
+      }).unwrap();
 
-    // try {
-    //   const token = localStorage.getItem("token");
-    //   const response = await fetch("/api/notices", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       Authorization: `Bearer ${token}`,
-    //     },
-    //     body: JSON.stringify({ ...formData, isActive: true }),
-    //   });
+      if (response.success && onCancelEdit) {
+        toast.success("Notice updated successfully", {
+          description: "The notice has been updated on the homepage.",
+        });
+        onCancelEdit();
+        return;
+      }
+    } else {
+      const response = await createNotice({
+        title: formData.title,
+        content: formData.content,
+        isActive: true,
+        isPinned: false,
+        isPinNav: Boolean(formData.isPinNav),
+      }).unwrap();
 
-    //   if (response.ok) {
-    //     setFormData({ title: "", content: "" });
-    //     // onNoticeCreated?.();
-    //   }
-    // } catch (error) {
-    //   console.error("[v0] Failed to create notice:", error);
-    // } finally {
-    //   setIsLoading(false);
-    // }
+      if (response.success) {
+        setFormData(defaultFormData);
+        toast.success("Notice created successfully", {
+          description: "The notice has been posted on the homepage.",
+        });
+      }
+    }
   };
 
   return (
@@ -74,6 +106,7 @@ export function NoticeManagement() {
               id="notice-title"
               placeholder="Important Announcement"
               value={formData.title}
+              disabled={Boolean(isSubmitting)}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
@@ -86,8 +119,12 @@ export function NoticeManagement() {
             <Textarea
               id="notice-content"
               placeholder="Enter your announcement details here..."
-              rows={4}
+              rows={10}
+              cols={20}
+              className="h-62.5  overflow-auto"
+              aria-label="Announcement content"
               value={formData.content}
+              disabled={Boolean(isSubmitting)}
               onChange={(e) =>
                 setFormData({ ...formData, content: e.target.value })
               }
@@ -95,10 +132,55 @@ export function NoticeManagement() {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            <Send className="mr-2 h-4 w-4" />
-            Publish Notice
+          <div className="flex items-center justify-between gap-4 rounded-md border p-3">
+            <div className="space-y-1">
+              <Label htmlFor="notice-pin-nav">Show in bottom notice nav</Label>
+              <p className="text-xs text-muted-foreground">
+                Pinned notices appear in the bottom scrolling bar.
+              </p>
+            </div>
+            <input
+              id="notice-pin-nav"
+              type="checkbox"
+              className="h-4 w-4"
+              checked={Boolean(formData.isPinNav)}
+              disabled={Boolean(isSubmitting)}
+              onChange={(e) =>
+                setFormData({ ...formData, isPinNav: e.target.checked })
+              }
+            />
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={Boolean(isSubmitting)}
+          >
+            {isSubmitting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Send className="mr-2 h-4 w-4" />
+            )}
+            {isSubmitting
+              ? editingNotice
+                ? "Updating..."
+                : "Publishing..."
+              : editingNotice
+              ? "Update Notice"
+              : "Publish Notice"}
           </Button>
+
+          {editingNotice && onCancelEdit ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={Boolean(isSubmitting)}
+              onClick={onCancelEdit}
+            >
+              Cancel Editing
+            </Button>
+          ) : null}
         </form>
       </CardContent>
     </Card>

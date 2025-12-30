@@ -1,14 +1,13 @@
-import React from "react";
-import { NoticeBoard } from "./noticeBoard";
+import { getActiveNotices } from "@/lib/actions";
+import { NoticeBoardClient } from "./noticeBoard.client";
 
-const NoticeSection = () => {
+export default async function NoticeSection() {
+  const notices = await getActiveNotices();
   return (
     <section className="w-full py-12 md:py-20 animate-in fade-in duration-1000">
       <div className="container mx-auto px-4">
-        <NoticeBoard />
+        <NoticeBoardClient notices={notices} />
       </div>
     </section>
   );
-};
-
-export default NoticeSection;
+}

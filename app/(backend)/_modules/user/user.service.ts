@@ -1,10 +1,11 @@
+import { Auth } from "../../_core/error-handler/auth";
 import { ApiErrors } from "../../_core/errors/api-error";
 import { passwordHelper } from "../../_core/helper/password-security";
 import { prisma } from "@/lib/prisma";
-import { requireAuth, RequireSuperAdmin } from "../../_core/error-handler/auth";
 
 const createUser = async (req: Request) => {
-  await RequireSuperAdmin();
+  const auth = Auth.getInstance();
+  auth.requireAuth();
   const { password, ...payload } = await req.json();
 
   // Check if user already exists
@@ -35,7 +36,8 @@ const createUser = async (req: Request) => {
 };
 
 const getLoggedInUser = async () => {
-  const session = await requireAuth();
+  const auth = Auth.getInstance();
+  const session = await auth.requireAuth();
 
   const user = await prisma.user.findUnique({
     where: { id: session.id },
@@ -48,16 +50,17 @@ const getLoggedInUser = async () => {
 };
 
 const getAllUser = async () => {
-  await RequireSuperAdmin();
+  const auth = Auth.getInstance();
+  await auth.requireAuth();
   const result = await prisma.user.findMany({});
   return result;
 };
 
 const updateLoggedInUser = async (req: Request) => {
-  const session = await requireAuth();
-  console.log("user identified");
+  const auth = Auth.getInstance();
+  const session = await auth.requireAuth();
+
   const body = await req.json();
-  console.log("Request body:", body);
 
   const id = session.id;
 
@@ -107,9 +110,9 @@ const updateLoggedInUser = async (req: Request) => {
 };
 
 const deleteUser = async (req: Request) => {
-  await RequireSuperAdmin();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
+
   if (!id) {
     throw ApiErrors.BadRequest("User id is required");
   }

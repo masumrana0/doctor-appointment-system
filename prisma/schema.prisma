@@ -43,6 +43,7 @@ model Notice {
   createdAt DateTime @default(now())
   isActive  Boolean  @default(true)
   isPinned  Boolean  @default(false)
+  isPinNav  Boolean  @default(false)
 
   @@map("notices")
 }

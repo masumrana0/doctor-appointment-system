@@ -13,7 +13,7 @@ const userQuery = baseQuery.injectEndpoints({
     }),
     deleteUser: build.mutation({
       query: (id: string) => ({
-        url: `/user?${id}`,
+        url: `/user?id=${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["user"],

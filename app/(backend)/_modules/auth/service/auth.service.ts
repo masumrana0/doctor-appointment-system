@@ -1,10 +1,13 @@
-import { AuthUtils } from "@/app/(backend)/_core/error-handler/auth";
+import { Auth } from "@/app/(backend)/_core/error-handler/auth";
 import { ApiErrors } from "@/app/(backend)/_core/errors/api-error";
 import { passwordHelper } from "@/app/(backend)/_core/helper/password-security";
-
+import { User } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 
-const login = async (req: Request): Promise<string> => {
+const login = async (
+  req: Request
+): Promise<{ token: string; user: Omit<User, "password"> }> => {
+  const auth = Auth.getInstance();
   const { email, password } = await req.json();
 
   if (!email || !password) {
@@ -31,13 +34,15 @@ const login = async (req: Request): Promise<string> => {
 
   const { password: _, ...userWithoutPassword } = user;
 
-  const token = AuthUtils.createToken(userWithoutPassword);
+  const token = await auth.createToken(userWithoutPassword);
 
-  return token;
+  return { token: token, user: userWithoutPassword };
 };
 
 const passwordChange = async (req: Request): Promise<void> => {
-  const session = await AuthUtils.requireAuth();
+  const auth = Auth.getInstance();
+  const session = await auth.requireAuth();
+
   const { currentPassword, newPassword } = await req.json();
 
   if (!currentPassword || !newPassword) {

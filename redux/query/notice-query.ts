@@ -5,13 +5,27 @@ const noticeQuery = baseQuery.injectEndpoints({
   endpoints: (build) => ({
     getAllNotice: build.query({
       query: () => ({
-        url: "/user",
+        url: "/notice",
+        method: "GET",
+      }),
+      providesTags: ["notice"],
+    }),
+    getActiveNotice: build.query({
+      query: () => ({
+        url: "/notice?active=true",
+        method: "GET",
+      }),
+      providesTags: ["notice"],
+    }),
+    getNavPinNotice: build.query({
+      query: () => ({
+        url: "/notice?pinNav=true",
         method: "GET",
       }),
       providesTags: ["notice"],
     }),
     createNotice: build.mutation({
-      query: (data: Notice) => ({
+      query: (data: Pick<Notice, "title" | "content"> & Partial<Notice>) => ({
         url: "/notice",
         method: "POST",
         body: data,
@@ -28,8 +42,8 @@ const noticeQuery = baseQuery.injectEndpoints({
     }),
     deleteNotice: build.mutation({
       query: (id: ID) => ({
-        url: "/notice",
-        method: "PATCH",
+        url: `/notice/${id}`,
+        method: "DELETE",
       }),
       invalidatesTags: ["notice"],
     }),
@@ -40,6 +54,8 @@ const noticeQuery = baseQuery.injectEndpoints({
 export const {
   useCreateNoticeMutation,
   useGetAllNoticeQuery,
+  useGetActiveNoticeQuery,
+  useGetNavPinNoticeQuery,
   useUpdateNoticeMutation,
   useDeleteNoticeMutation,
 } = noticeQuery;

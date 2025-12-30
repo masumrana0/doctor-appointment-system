@@ -85,6 +85,7 @@ export const translations = {
 
     // Notices
     importantNotices: "Important Notices",
+    notices: "Notices",
     noNotices: "No active notices at this time.",
   },
   bn: {
@@ -174,6 +175,7 @@ export const translations = {
 
     // Notices
     importantNotices: "গুরুত্বপূর্ণ বিজ্ঞপ্তি",
+    notices: "বিজ্ঞপ্তি",
     noNotices: "এই মুহূর্তে কোন সক্রিয় নোটিশ নেই।",
   },
 };
