@@ -48,40 +48,66 @@ export function NoticeManagement({
     setFormData(defaultFormData);
   }, [editingNotice]);
 
+  const getErrorMessage = (error: unknown) => {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "data" in error &&
+      typeof (error as any).data === "object" &&
+      (error as any).data !== null &&
+      "message" in (error as any).data
+    ) {
+      return (error as { data: { message?: string } }).data.message;
+    }
+    if (error instanceof Error) return error.message;
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingNotice?.id) {
-      const response = await updateNotice({
-        id: editingNotice.id,
-        data: {
+
+    try {
+      if (editingNotice?.id) {
+        const response = await updateNotice({
+          id: editingNotice.id,
+          data: {
+            title: formData.title,
+            content: formData.content,
+            isPinNav: formData.isPinNav,
+          },
+        }).unwrap();
+
+        if (response.success && onCancelEdit) {
+          toast.success("Notice updated successfully", {
+            description: "The notice has been updated on the homepage.",
+          });
+          onCancelEdit();
+          return;
+        }
+      } else {
+        const response = await createNotice({
           title: formData.title,
           content: formData.content,
-          isPinNav: formData.isPinNav,
-        },
-      }).unwrap();
+          isActive: true,
+          isPinned: false,
+          isPinNav: Boolean(formData.isPinNav),
+        }).unwrap();
 
-      if (response.success && onCancelEdit) {
-        toast.success("Notice updated successfully", {
-          description: "The notice has been updated on the homepage.",
-        });
-        onCancelEdit();
-        return;
+        if (response.success) {
+          setFormData(defaultFormData);
+          toast.success("Notice created successfully", {
+            description: "The notice has been posted on the homepage.",
+          });
+        }
       }
-    } else {
-      const response = await createNotice({
-        title: formData.title,
-        content: formData.content,
-        isActive: true,
-        isPinned: false,
-        isPinNav: Boolean(formData.isPinNav),
-      }).unwrap();
-
-      if (response.success) {
-        setFormData(defaultFormData);
-        toast.success("Notice created successfully", {
-          description: "The notice has been posted on the homepage.",
-        });
-      }
+    } catch (error: any) {
+      const message = getErrorMessage(error) || (editingNotice ? "Failed to update notice" : "Failed to create notice");
+      toast.error(message, {
+        description:
+          editingNotice
+            ? "There was an error updating the notice. Please try again."
+            : "There was an error publishing the notice. Please try again.",
+      });
     }
   };
 

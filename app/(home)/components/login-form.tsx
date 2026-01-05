@@ -13,7 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLoginMutation } from "@/redux/query/auth-query";
-import type { LoginData } from "@/interface";
+import type { LoginData, User } from "@/interface";
+import { USER_KEY } from "@/constants/keys";
 
 const DEFAULT_CREDENTIALS: LoginData = {
   email: "super-admin@gmail.com",
@@ -22,7 +23,7 @@ const DEFAULT_CREDENTIALS: LoginData = {
 
 export function LoginForm() {
   const router = useRouter();
-  const [login, { isLoading }] = useLoginMutation();
+  const [login, { isLoading, isSuccess }] = useLoginMutation();
 
   const [form, setForm] = useState<LoginData>(DEFAULT_CREDENTIALS);
   const [error, setError] = useState<string | null>(null);
@@ -39,10 +40,10 @@ export function LoginForm() {
     setError(null);
 
     try {
-      const data = await login(form).unwrap();
-      if (data?.statusCode == 200) {
-        router.push("/dashboard");
-      }
+      const { data } = await login(form).unwrap();
+      localStorage.setItem(USER_KEY, JSON.stringify(data as User));
+
+      router.replace("/dashboard");
     } catch (err: any) {
       setError(err?.data?.message ?? "Login failed. Please try again.");
     }
@@ -107,12 +108,12 @@ export function LoginForm() {
             type="submit"
             className="w-full"
             size="lg"
-            disabled={isLoading}
+            disabled={isLoading || isSuccess}
           >
-            {isLoading ? (
+            {isLoading || isSuccess ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing in...
+                {isSuccess ? "Redirecting..." : "Signing in..."}
               </>
             ) : (
               "Sign In"

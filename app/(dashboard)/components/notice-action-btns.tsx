@@ -6,6 +6,7 @@ import {
   useUpdateNoticeMutation,
 } from "@/redux/query/notice-query";
 import React from "react";
+import { toast } from "sonner";
 
 const NoticeActionBtns = ({
   notice,
@@ -18,14 +19,32 @@ const NoticeActionBtns = ({
   const [deleteNotice, { isLoading: isDeleting }] = useDeleteNoticeMutation();
 
   const handleToggleActive = async () => {
-    await updateNotice({ id: notice.id, data: { isActive: !notice.isActive } });
+    try {
+      const res = await updateNotice({ id: notice.id, data: { isActive: !notice.isActive } }).unwrap();
+      if (res.success) {
+        toast.success("Notice updated", {
+          description: "Notice visibility updated.",
+        });
+      }
+    } catch (error: any) {
+      const message = error?.data?.message ?? error?.message ?? "Failed to update notice";
+      toast.error(message, { description: "There was an error updating the notice." });
+    }
   };
 
   const handleTogglePinNav = async () => {
-    await updateNotice({
-      id: notice.id,
-      data: { isPinNav: !notice.isPinNav },
-    });
+    try {
+      const res = await updateNotice({
+        id: notice.id,
+        data: { isPinNav: !notice.isPinNav },
+      }).unwrap();
+      if (res.success) {
+        toast.success("Notice updated", { description: "Notice pin state updated." });
+      }
+    } catch (error: any) {
+      const message = error?.data?.message ?? error?.message ?? "Failed to update notice";
+      toast.error(message, { description: "There was an error updating the notice." });
+    }
   };
 
   const handleDelete = async () => {
@@ -34,7 +53,15 @@ const NoticeActionBtns = ({
     );
     if (!confirmed) return;
 
-    await deleteNotice(notice.id);
+    try {
+      const res = await deleteNotice(notice.id).unwrap();
+      if (res.success) {
+        toast.success("Notice deleted", { description: "The notice has been removed." });
+      }
+    } catch (error: any) {
+      const message = error?.data?.message ?? error?.message ?? "Failed to delete notice";
+      toast.error(message, { description: "There was an error deleting the notice." });
+    }
   };
   return (
     <div className="flex flex-wrap gap-2">

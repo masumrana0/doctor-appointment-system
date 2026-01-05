@@ -1,4 +1,4 @@
-import { Auth } from "@/app/(backend)/_core/error-handler/auth";
+import { requireAuth } from "@/app/(backend)/_core/error-handler/auth";
 import { ApiErrors } from "@/app/(backend)/_core/errors/api-error";
 import { prisma } from "@/lib/prisma";
 
@@ -22,7 +22,7 @@ const getAllNotice = async (req: Request) => {
 
   // Public access is allowed only for active notices or pinNav notices
   if (!activeOnly && !pinNavOnly) {
-    await Auth.getInstance().requireSuperAdmin();
+    await requireAuth();
   }
 
   const notices = await prisma.notice.findMany({
@@ -40,7 +40,10 @@ const getAllNotice = async (req: Request) => {
 };
 
 const createNotice = async (req: Request) => {
-  await Auth.getInstance().requireSuperAdmin();
+  const user = await requireAuth();
+  if (user.role !== "super_admin") {
+    throw ApiErrors.Forbidden("Only super admin can create notices");
+  }
 
   const body = (await req.json()) as NoticeCreatePayload;
 
@@ -62,7 +65,10 @@ const createNotice = async (req: Request) => {
 };
 
 const updateNotice = async (req: Request, id: string) => {
-  await Auth.getInstance().requireSuperAdmin();
+  const user = await requireAuth();
+  if (user.role !== "super_admin") {
+    throw ApiErrors.Forbidden("Only super admin can update notices");
+  }
 
   const body = (await req.json()) as NoticeUpdatePayload;
 
@@ -85,7 +91,10 @@ const updateNotice = async (req: Request, id: string) => {
 };
 
 const deleteNotice = async (id: string) => {
-  await Auth.getInstance().requireSuperAdmin();
+  const user = await requireAuth();
+  if (user.role !== "super_admin") {
+    throw ApiErrors.Forbidden("Only super admin can delete notices");
+  }
 
   if (!id) {
     throw ApiErrors.BadRequest("Notice id is required");

@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import {
@@ -18,9 +19,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import { User } from "@/interface";
 import { useCreateUserMutation } from "@/redux/query/user-query";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
@@ -179,7 +181,14 @@ const CreateUserForm: React.FC<{
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              Create Staff Account
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                "Create Staff Account"
+              )}
             </Button>
           </form>
         </DialogContent>

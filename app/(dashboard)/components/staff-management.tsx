@@ -1,13 +1,6 @@
 "use client";
-
 import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { UserCog } from "lucide-react";
 import { User } from "@/interface";
 import { useGetAllUserQuery } from "@/redux/query/user-query";
@@ -19,7 +12,8 @@ export function StaffManagement() {
   const { data, isLoading } = useGetAllUserQuery(null);
 
   const staff = ((data?.data ?? []) as User[]).filter(
-    (u): u is User & { id: string } => typeof u?.id === "string" && u.id.length > 0
+    (u): u is User & { id: string } =>
+      typeof u?.id === "string" && u.id.length > 0
   );
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);

@@ -1,4 +1,4 @@
-import { Auth } from "../../_core/error-handler/auth";
+import { Auth, requireAuth } from "../../_core/error-handler/auth";
 import { ApiErrors } from "../../_core/errors/api-error";
 import { passwordHelper } from "../../_core/helper/password-security";
 import { prisma } from "@/lib/prisma";
@@ -110,11 +110,20 @@ const updateLoggedInUser = async (req: Request) => {
 };
 
 const deleteUser = async (req: Request) => {
+  const user = await requireAuth();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
 
   if (!id) {
     throw ApiErrors.BadRequest("User id is required");
+  }
+
+  if (user.id === id) {
+    throw ApiErrors.BadRequest("You cannot delete your own account");
+  }
+
+  if (user.role !== "superAdmin") {
+    throw ApiErrors.Forbidden("Only super admin can delete user accounts");
   }
 
   const isExistUser = await prisma.user.findUnique({
